@@ -6,22 +6,49 @@ namespace NewsApp.Pages;
 public partial class NewsPage : ContentPage
 {
     public List<Article> ArticlesList { get; set; }
+    public List<Category> CategorysList = new List<Category>()
+    {
+        new Category(){Name = "Breaking-news"},
+        new Category(){Name = "World"},
+        new Category(){Name = "Nation"},
+        new Category(){Name = "Business"},
+        new Category(){Name = "Technology"},
+        new Category(){Name = "Entertainment"},
+        new Category(){Name = "Sports"},
+        new Category(){Name = "Science"},
+        new Category(){Name = "Health"},
+    };
 	public NewsPage()
 	{
 		InitializeComponent();
         ArticlesList = new List<Article>();
+        CvCategories.ItemsSource = CategorysList;
+
 	}
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        ApiService apiService = new ApiService();
-        var newsResults = await apiService.GetNews();
+        await PassCategory("breaking-news");
+    }
 
-        foreach ( var item in newsResults.Articles ) 
+    public async Task PassCategory(string categoryName)
+    {
+        CvNews.ItemsSource = null;
+        ArticlesList.Clear();
+        ApiService apiService = new ApiService();
+        var newsResults = await apiService.GetNews(categoryName);
+
+        foreach (var item in newsResults.Articles)
         {
-            ArticlesList.Add( item );
+            ArticlesList.Add(item);
         }
         CvNews.ItemsSource = ArticlesList;
+    }
+
+    private async void CvCategories_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = e.CurrentSelection.FirstOrDefault() as Category;
+        await PassCategory(selectedItem.Name);
     }
 }
